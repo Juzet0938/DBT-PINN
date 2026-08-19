@@ -266,39 +266,130 @@ def run_ablation_experiment(iterations_list, network_configs, t_start, t_end, n_
 # Plot ablation experiment results
 # =============================================================
 def plot_ablation_results(results, iterations_list):
-    """Plot RMSE comparison bar chart for different iteration counts"""
-    fig, axes = plt.subplots(2, 3, figsize=(15, 10))
-    axes = axes.flatten()
-    
+    """Plot RMSE comparison for the ablation study."""
+
+    plt.rcParams.update({'font.family': 'Times New Roman', 'mathtext.fontset': 'stix'})
+
     state_names = ['x', 'y', 'z', 'v', 'gamma', 'chi']
-    state_units = ['m', 'm', 'm', 'm/s', 'deg', 'deg']
-    state_titles = ['X Position', 'Y Position', 'Z Position', 'Velocity', 'Flight Path Angle', 'Heading Angle']
-    
-    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b']
-    
-    for idx, (name, unit, title, color) in enumerate(zip(state_names, state_units, state_titles, colors)):
-        ax = axes[idx]
-        rmse_values = [results[n_iter]['rmse'][name] for n_iter in iterations_list]
-        max_rmse = max(rmse_values)
-        
-        bars = ax.bar([str(i) for i in iterations_list], rmse_values, color=color, alpha=0.7, edgecolor='black')
-        ax.set_xlabel('Training Iterations', fontsize=11)
-        ax.set_ylabel(f'RMSE ({unit})', fontsize=11)
-        ax.set_title(f'{title}', fontsize=12, fontweight='bold')
-        ax.grid(True, alpha=0.3)
-        
-        # Set Y-axis upper limit
-        ax.set_ylim(0, max_rmse * 1.1)
-        
-        # Add value labels on top of bars
-        for bar, val in zip(bars, rmse_values):
-            ax.text(bar.get_x() + bar.get_width()/2, val + max_rmse * 0.03,
-                   f'{val:.2f}', ha='center', va='bottom', fontsize=9)
-    
-    plt.tight_layout()
-    plt.savefig('PINNALT_ablation_rmse_comparison.png', dpi=300, bbox_inches='tight')
+
+    display_names = [
+        r'$x$',
+        r'$y$',
+        r'$z$',
+        r'$v$',
+        r'$\gamma$',
+        r'$\chi$'
+    ]
+
+    fig, axes = plt.subplots(2, 3, figsize=(10, 6))
+    axes = axes.flatten()
+
+    bar_color = '#4C72B0'
+
+    for ax, state, label in zip(
+            axes,
+            state_names,
+            display_names):
+
+        rmse_values = [
+            results[n_iter]['rmse'][state]
+            for n_iter in iterations_list
+        ]
+
+        bars = ax.bar(
+            range(len(iterations_list)),
+            rmse_values,
+            width=0.7,
+            color=bar_color,
+            edgecolor='black',
+            linewidth=0.8
+        )
+
+        ax.set_xticks(range(len(iterations_list)))
+
+        ax.set_xticklabels(
+            [str(i) for i in iterations_list],
+            rotation=0
+        )
+
+        ax.set_xlabel('Iterations')
+
+        ax.set_ylabel('RMSE')
+
+        ax.set_title(label, fontsize=11)
+
+        ax.grid(axis='y', alpha=0.3)
+
+        ymax = max(rmse_values)
+
+        ax.set_ylim(0, ymax * 1.15)
+
+        # Add value labels
+        for bar, value in zip(bars, rmse_values):
+
+            ax.text(
+                bar.get_x() + bar.get_width() / 2,
+                value + ymax * 0.02,
+                f'{value:.2f}',
+                ha='center',
+                va='bottom',
+                fontsize=8
+            )
+
+    plt.tight_layout(
+        pad=1.0,
+        w_pad=1.0,
+        h_pad=1.0
+    )
+
+    plt.savefig(
+        'PINNALT_ablation_rmse_comparison.png',
+        dpi=600,
+        bbox_inches='tight'
+    )
+
     plt.show()
-    print("\nAblation result figure saved as: PINNALT_ablation_rmse_comparison.png")
+
+    print(
+        '\nAblation result figure saved as: '
+        'PINNALT_ablation_rmse_comparison.png'
+    )
+
+# def plot_ablation_results(results, iterations_list):
+#     """Plot RMSE comparison bar chart for different iteration counts"""
+#     fig, axes = plt.subplots(2, 3, figsize=(15, 10))
+#     axes = axes.flatten()
+    
+#     state_names = ['x', 'y', 'z', 'v', 'gamma', 'chi']
+#     state_units = ['m', 'm', 'm', 'm/s', 'deg', 'deg']
+#     state_titles = ['X Position', 'Y Position', 'Z Position', 'Velocity', 'Flight Path Angle', 'Heading Angle']
+#     display_names = [r'$x$ (m)', r'$y$ (m)', r'$z$ (m)', r'$v$ (m/s)', r'$\gamma$ (deg)', r'$\chi$ (deg)']
+    
+#     colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b']
+    
+#     for idx, (name, unit, title, color) in enumerate(zip(state_names, state_units, state_titles, colors)):
+#         ax = axes[idx]
+#         rmse_values = [results[n_iter]['rmse'][name] for n_iter in iterations_list]
+#         max_rmse = max(rmse_values)
+        
+#         bars = ax.bar([str(i) for i in iterations_list], rmse_values, color=color, alpha=0.7, edgecolor='black')
+#         ax.set_xlabel('Training Iterations', fontsize=11)
+#         ax.set_ylabel(f'RMSE ({unit})', fontsize=11)
+#         ax.set_title(f'{title}', fontsize=12, fontweight='bold')
+#         ax.grid(True, alpha=0.3)
+        
+#         # Set Y-axis upper limit
+#         ax.set_ylim(0, max_rmse * 1.1)
+        
+#         # Add value labels on top of bars
+#         for bar, val in zip(bars, rmse_values):
+#             ax.text(bar.get_x() + bar.get_width()/2, val + max_rmse * 0.03,
+#                    f'{val:.2f}', ha='center', va='bottom', fontsize=9)
+    
+#     plt.tight_layout()
+#     plt.savefig('PINNALT_ablation_rmse_comparison.png', dpi=300, bbox_inches='tight')
+#     plt.show()
+#     print("\nAblation result figure saved as: PINNALT_ablation_rmse_comparison.png")
 
 def plot_ablation_rmse_curve(results, iterations_list):
     """Plot average RMSE curve as a function of iteration count"""

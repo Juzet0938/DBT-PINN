@@ -26,6 +26,8 @@ import copy
 
 import time
 
+from matplotlib.lines import Line2D
+
 # Set random seeds
 torch.manual_seed(42)
 np.random.seed(42)
@@ -472,7 +474,7 @@ def plot_figure_combined(rk45_pred, pinn_pred, loss_history):
     # Plot RK45 reference trajectory
     ax1.plot(rk45_pred['x'], rk45_pred['y'], rk45_pred['z'], 
             color=colors['rk45'], linewidth=2.2, 
-            label='RK45 (Reference)', alpha=0.9, zorder=2)
+            label='RK45', alpha=0.9, zorder=2)
     
     # Plot PINN predicted trajectory
     ax1.plot(pinn_pred['x'], pinn_pred['y'], pinn_pred['z'], 
@@ -520,8 +522,8 @@ def plot_figure_combined(rk45_pred, pinn_pred, loss_history):
     ax1.zaxis._axinfo['grid'].update({'linewidth': 0.3, 'alpha': 0.2})
     
     # Background transparent
-    ax1.patch.set_facecolor('white')
-    ax1.patch.set_alpha(0.0)
+    #ax1.patch.set_facecolor('white')
+    #ax1.patch.set_alpha(0.0)
     
     # View angle
     ax1.view_init(elev=25, azim=-60)
@@ -531,12 +533,12 @@ def plot_figure_combined(rk45_pred, pinn_pred, loss_history):
     
     # Define Greek character labels for state variables
     state_labels = {
-        'x': r'$x$ (position)',
-        'y': r'$y$ (position)',
-        'z': r'$z$ (position)',
-        'v': r'$v$ (velocity)',
-        'gamma': r'$\gamma$ (flight path angle)',
-        'chi': r'$\chi$ (heading angle)'
+        'x': r'$x$',
+        'y': r'$y$',
+        'z': r'$z$',
+        'v': r'$v$',
+        'gamma': r'$\gamma$',
+        'chi': r'$\chi$'
     }
     
     # Define academic color scheme
@@ -556,11 +558,11 @@ def plot_figure_combined(rk45_pred, pinn_pred, loss_history):
     if len(loss_history['total']) > 0:
         total_loss_data = loss_history['total']
         ax2.semilogy(total_loss_data, 'k-', linewidth=2.0, 
-                    label=r'$\mathcal{L}_{total}$ (Total loss)', alpha=0.9, zorder=10)
+                    label=r'$\mathcal{L}_{total}$', alpha=0.9, zorder=10)
     
     # Axis labels
     ax2.set_xlabel('Training Iterations', fontsize=12, fontweight='normal', labelpad=8)
-    ax2.set_ylabel('Loss Value (log scale)', fontsize=12, fontweight='normal', labelpad=8)
+    ax2.set_ylabel('Loss', fontsize=12, fontweight='normal', labelpad=8)
     
     # Legend
     legend2 = ax2.legend(loc='best', frameon=True, fancybox=False, 
@@ -582,7 +584,7 @@ def plot_figure_combined(rk45_pred, pinn_pred, loss_history):
                     length=3, width=0.8, colors='black', top=True, right=True)
     
     # Background color
-    ax2.set_facecolor('#f8f9fa')
+    #ax2.set_facecolor('#f8f9fa')
     
     # ==================== Embedded zoomed view (loss curve late stage) ====================
     if total_loss_data is not None and len(total_loss_data) > 1000:
@@ -721,35 +723,69 @@ def plot_figure_comparison(t_test, rk45_pred, pinn_pred):
     Figure 2: 6 subplots showing x, y, z, v, gamma, chi predictions compared with RK45
     """
     state_names = ['x', 'y', 'z', 'v', 'gamma', 'chi']
-    display_names = ['X Position (m)', 'Y Position (m)', 'Z Position (m)', 
-                     'Velocity (m/s)', 'Flight Path Angle (deg)', 'Heading Angle (deg)']
+    # display_names = ['X Position (m)', 'Y Position (m)', 'Z Position (m)', 
+    #                  'Velocity (m/s)', 'Flight Path Angle (deg)', 'Heading Angle (deg)']
+    display_names = [r'$x$ (m)', r'$y$ (m)', r'$z$ (m)', r'$v$ (m/s)', r'$\gamma$ (deg)', r'$\chi$ (deg)']
     
     fig, axes = plt.subplots(2, 3, figsize=(10, 6))
     axes = axes.flatten()
+
+    rk45_color = "#1f77b4"
+    pinn_color = "#d62728"
     
     for idx, (name, display_name) in enumerate(zip(state_names, display_names)):
         ax = axes[idx]
         
         # Plot RK45 reference solution
         if name in ['gamma', 'chi']:
-            ax.plot(t_test, np.degrees(rk45_pred[name]), 'b-', linewidth=2.5, 
-                   label='RK45 (Reference)', alpha=0.9)
-            ax.plot(t_test, np.degrees(pinn_pred[name]), 'r--', linewidth=2, 
-                   label='DBT-PINN', alpha=0.8)
+            ax.plot(t_test, np.degrees(rk45_pred[name]), color=rk45_color, linewidth=2.5, 
+                   label='RK45', alpha=0.9)
+            ax.plot(t_test, np.degrees(pinn_pred[name]), color=pinn_color, linewidth=2, linestyle='--', label='DBT-PINN', alpha=0.8)
         else:
-            ax.plot(t_test, rk45_pred[name], 'b-', linewidth=2.5, 
-                   label='RK45 (Reference)', alpha=0.9)
-            ax.plot(t_test, pinn_pred[name], 'r--', linewidth=2, 
-                   label='DBT-PINN', alpha=0.8)
+            ax.plot(t_test, rk45_pred[name], color=rk45_color, linewidth=2.5, 
+                   label='RK45', alpha=0.9)
+            ax.plot(t_test, pinn_pred[name], color=pinn_color, linewidth=2, linestyle='--', label='DBT-PINN', alpha=0.8)
         
         ax.set_xlabel('Time (s)', fontsize=11)
         ax.set_ylabel(display_name, fontsize=11)
-        ax.set_title(f'{display_name}', fontsize=12, fontweight='bold')
-        ax.legend(fontsize=10, loc='best')
+        #ax.set_title(f'{display_name}', fontsize=12, fontweight='bold')
+        #ax.legend(fontsize=10, loc='best')
         ax.grid(True, alpha=0.3)
+
+    # ==========================================================
+    # Unified legend
+    # ==========================================================
+    legend_handles = [
+        Line2D(
+            [0], [0],
+            color=rk45_color,
+            linewidth=2.5,
+            label='RK45'
+        ),
+        Line2D(
+            [0], [0],
+            color=pinn_color,
+            linewidth=2.0,
+            linestyle='--',
+            label='DBT-PINN'
+        )
+    ]
+
+    fig.legend(
+        handles=legend_handles,
+        loc='lower center',
+        bbox_to_anchor=(0.5, 0.005),
+        ncol=2,
+        fontsize=10,
+        frameon=False,
+        handlelength=2.5,
+        columnspacing=1.5
+    )
+
+    plt.tight_layout(rect=[0, 0.045, 1, 1])
         
-    plt.tight_layout()
-    plt.savefig('PINNDBT_figure_states_comparison.png', dpi=150, bbox_inches='tight')
+    #plt.tight_layout()
+    plt.savefig('PINNDBT_figure_states_comparison.png', dpi=300, bbox_inches='tight')
     plt.show()
     print("\nSaved as PINNDBT_figure_states_comparison.png")
 
@@ -759,8 +795,7 @@ def plot_figure_convergence(t_test, rk45_pred, checkpoint_predictions, checkpoin
     Note: checkpoint_t is the time points during training, t_test is the test time points
     """
     state_names = ['x', 'y', 'z', 'v', 'gamma', 'chi']
-    display_names = ['X Position (m)', 'Y Position (m)', 'Z Position (m)', 
-                     'Velocity (m/s)', 'Flight Path Angle (deg)', 'Heading Angle (deg)']
+    display_names = [r'$x$ (m)', r'$y$ (m)', r'$z$ (m)', r'$v$ (m/s)', r'$\gamma$ (deg)', r'$\chi$ (deg)']
     
     # Get iteration counts and sort
     iterations = sorted(checkpoint_predictions.keys())
@@ -775,10 +810,10 @@ def plot_figure_convergence(t_test, rk45_pred, checkpoint_predictions, checkpoin
         # Plot RK45 reference solution (using t_test)
         if name in ['gamma', 'chi']:
             ax.plot(t_test, np.degrees(rk45_pred[name]), 'k-', linewidth=3, 
-                   label='RK45 (Reference)', alpha=0.9)
+                   label='RK45', alpha=0.9)
         else:
             ax.plot(t_test, rk45_pred[name], 'k-', linewidth=3, 
-                   label='RK45 (Reference)', alpha=0.9)
+                   label='RK45', alpha=0.9)
         
         # Plot predictions at different iteration counts (using checkpoint_t)
         for i, iter_num in enumerate(iterations):
@@ -804,12 +839,58 @@ def plot_figure_convergence(t_test, rk45_pred, checkpoint_predictions, checkpoin
         
         ax.set_xlabel('Time (s)', fontsize=12)
         ax.set_ylabel(display_name, fontsize=12)
-        ax.set_title(f'{display_name}', fontsize=12, fontweight='bold')
-        ax.legend(fontsize=8, loc='best')
+        #ax.set_title(f'{display_name}', fontsize=12, fontweight='bold')
+        #ax.legend(fontsize=8, loc='best')
         ax.grid(True, alpha=0.3)
     
-    plt.tight_layout()
-    plt.savefig('PINNDBT_figure_iteration_convergence.png', dpi=150, bbox_inches='tight')
+    # Create legend handles manually
+    legend_handles = []
+    legend_labels = []
+    
+    # RK45 reference
+    rk45_handle, = axes[0].plot(
+        [],
+        [],
+        'k-',
+        linewidth=3,
+        alpha=0.9
+    )
+    legend_handles.append(rk45_handle)
+    legend_labels.append('RK45')
+    
+    # Iteration curves
+    for i, iter_num in enumerate(iterations):
+        handle, = axes[0].plot(
+            [],
+            [],
+            '--',
+            color=colors[i],
+            linewidth=1.8,
+            alpha=0.8
+        )
+        legend_handles.append(handle)
+        legend_labels.append(f'Iteration {iter_num}')
+
+    # ================================================================
+    # Global legend at the bottom
+    # ================================================================
+    fig.legend(
+        legend_handles,
+        legend_labels,
+        loc='lower center',
+        bbox_to_anchor=(0.5, 0.005),
+        ncol=len(legend_labels),
+        fontsize=10,
+        frameon=False,
+        handlelength=2.5,
+        columnspacing=1.5
+    )
+    
+    # Leave space at the bottom for the shared legend
+    plt.tight_layout(rect=[0, 0.045, 1, 1])
+
+    #plt.tight_layout()
+    plt.savefig('PINNDBT_figure_iteration_convergence.png', dpi=300, bbox_inches='tight')
     plt.show()
     print("\nSaved as PINNDBT_figure_iteration_convergence.png")
 
